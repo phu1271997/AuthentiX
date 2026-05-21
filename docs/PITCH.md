@@ -55,4 +55,4 @@ This document details the slide structure and oral script for pitching AuthentiX
 > 
 > *This is impossible on Ethereum, Solana, or any other chain because they lack visual processing and native web integrations. GenLayer makes AuthentiX possible.*
 > 
-> *Try it now at authentix.vercel.app and secure your collection."*
+> *Try it now at authentix-dapp.vercel.app and secure your collection."*
