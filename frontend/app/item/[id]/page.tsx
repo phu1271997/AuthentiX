@@ -32,6 +32,7 @@ export default function ItemDetail() {
   const [targetAddress, setTargetAddress] = useState("");
   const [transferError, setTransferError] = useState("");
   const [transferSuccess, setTransferSuccess] = useState(false);
+  const [transferring, setTransferring] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -68,7 +69,7 @@ export default function ItemDetail() {
 
   const isOwner = item.submitter.toLowerCase() === userAddress.toLowerCase();
 
-  const handleTransfer = (e: React.FormEvent) => {
+  const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     setTransferError("");
     setTransferSuccess(false);
@@ -78,13 +79,20 @@ export default function ItemDetail() {
       return;
     }
 
-    const res = transferCertificate(item.certificate_id, targetAddress);
-    if (res.success) {
-      setTransferSuccess(true);
-      setTargetAddress("");
-      alert("Certificate transferred successfully!");
-    } else {
-      setTransferError(res.error || "An error occurred.");
+    setTransferring(true);
+    try {
+      const res = await transferCertificate(item.certificate_id, targetAddress);
+      if (res.success) {
+        setTransferSuccess(true);
+        setTargetAddress("");
+        alert("Certificate transferred successfully!");
+      } else {
+        setTransferError(res.error || "An error occurred.");
+      }
+    } catch (err: any) {
+      setTransferError(err.message || "An error occurred.");
+    } finally {
+      setTransferring(false);
     }
   };
 
@@ -239,13 +247,15 @@ export default function ItemDetail() {
                     placeholder="Recipient Wallet Address (0x...)"
                     value={targetAddress}
                     onChange={(e) => setTargetAddress(e.target.value)}
+                    disabled={transferring}
                     className="flex-1 bg-background border border-gold/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-gold font-mono"
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-gradient-to-r from-gold-dark to-gold text-background rounded-lg font-bold text-xs uppercase tracking-wider hover:brightness-110 cursor-pointer"
+                    disabled={transferring}
+                    className="px-4 py-2 bg-gradient-to-r from-gold-dark to-gold text-background rounded-lg font-bold text-xs uppercase tracking-wider hover:brightness-110 cursor-pointer disabled:opacity-50"
                   >
-                    Transfer
+                    {transferring ? "Transferring..." : "Transfer"}
                   </button>
                 </form>
               </div>

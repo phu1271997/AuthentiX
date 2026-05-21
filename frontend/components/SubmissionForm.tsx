@@ -25,6 +25,7 @@ export default function SubmissionForm({ onSubmitSuccess }: SubmissionFormProps)
   const { submitItem, userBalance } = useAuthentixStore();
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // Form State
   const [category, setCategory] = useState("");
@@ -97,7 +98,7 @@ export default function SubmissionForm({ onSubmitSuccess }: SubmissionFormProps)
     setStep((prev) => prev - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -106,21 +107,28 @@ export default function SubmissionForm({ onSubmitSuccess }: SubmissionFormProps)
       return;
     }
 
-    const res = submitItem({
-      category,
-      brand,
-      model,
-      serial_number: serialNumber,
-      year_claimed: yearClaimed,
-      image_urls: imageUrls,
-      provenance,
-      cert_doc_url: certDocUrl,
-    });
+    setSubmitting(true);
+    try {
+      const res = await submitItem({
+        category,
+        brand,
+        model,
+        serial_number: serialNumber,
+        year_claimed: yearClaimed,
+        image_urls: imageUrls,
+        provenance,
+        cert_doc_url: certDocUrl,
+      });
 
-    if (res.success && res.itemId) {
-      onSubmitSuccess(res.itemId);
-    } else {
-      setError(res.error || "An error occurred during submission.");
+      if (res.success && res.itemId) {
+        onSubmitSuccess(res.itemId);
+      } else {
+        setError(res.error || "An error occurred during submission.");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred during submission.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -446,10 +454,20 @@ export default function SubmissionForm({ onSubmitSuccess }: SubmissionFormProps)
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#AA7C11] via-[#D4AF37] to-[#F3E5AB] text-background rounded-lg font-bold text-xs uppercase tracking-widest hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.25)] transition-all cursor-pointer"
+              disabled={submitting}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#AA7C11] via-[#D4AF37] to-[#F3E5AB] text-background rounded-lg font-bold text-xs uppercase tracking-widest hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.25)] transition-all cursor-pointer disabled:opacity-50"
             >
-              <FileCheck2 className="h-4 w-4" />
-              <span>Stake 5 $AUTH & Submit</span>
+              {submitting ? (
+                <>
+                  <Coins className="h-4 w-4 animate-spin" />
+                  <span>Submitting to GenLayer...</span>
+                </>
+              ) : (
+                <>
+                  <FileCheck2 className="h-4 w-4" />
+                  <span>Stake 5 $AUTH & Submit</span>
+                </>
+              )}
             </button>
           </div>
         </form>

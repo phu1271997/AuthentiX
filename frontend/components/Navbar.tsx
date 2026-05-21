@@ -9,18 +9,25 @@ import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { userBalance, claimedStarter, claimStarterTokens, userAddress } = useAuthentixStore();
+  const { userBalance, claimedStarter, claimStarterTokens, userAddress, connectWallet, refreshState } = useAuthentixStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    connectWallet().then(() => refreshState());
+  }, [connectWallet, refreshState]);
 
-  const handleClaim = () => {
-    const res = claimStarterTokens();
-    if (res.success) {
+  const handleClaim = async () => {
+    setClaiming(true);
+    try {
+      const res = await claimStarterTokens();
       alert(res.message);
+    } catch (err: any) {
+      alert("Error: " + (err.message || err));
+    } finally {
+      setClaiming(false);
     }
   };
 
@@ -80,10 +87,11 @@ export default function Navbar() {
             {!claimedStarter ? (
               <button
                 onClick={handleClaim}
-                className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-xs font-semibold uppercase tracking-wider rounded-lg group bg-gradient-to-br from-[#AA7C11] via-[#D4AF37] to-[#F3E5AB] group-hover:from-[#AA7C11] group-hover:to-[#F3E5AB] hover:text-background text-foreground focus:ring-2 focus:outline-none focus:ring-gold/30 cursor-pointer"
+                disabled={claiming}
+                className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-xs font-semibold uppercase tracking-wider rounded-lg group bg-gradient-to-br from-[#AA7C11] via-[#D4AF37] to-[#F3E5AB] group-hover:from-[#AA7C11] group-hover:to-[#F3E5AB] hover:text-background text-foreground focus:ring-2 focus:outline-none focus:ring-gold/30 cursor-pointer disabled:opacity-50"
               >
                 <span className="relative px-3 py-1.5 transition-all ease-in duration-75 bg-background rounded-md group-hover:bg-opacity-0 font-medium">
-                  Claim 100 $AUTH
+                  {claiming ? "Claiming..." : "Claim 100 $AUTH"}
                 </span>
               </button>
             ) : null}
@@ -95,9 +103,12 @@ export default function Navbar() {
             </div>
 
             {/* Address */}
-            <div className="font-mono text-xs px-3 py-1.5 rounded-full border border-gold/20 bg-background/50 text-foreground/80">
-              {truncateAddress(userAddress)}
-            </div>
+            <button
+              onClick={() => connectWallet()}
+              className="font-mono text-xs px-3 py-1.5 rounded-full border border-gold/20 bg-background/50 hover:bg-gold/10 text-foreground/80 hover:text-gold transition-colors"
+            >
+              {userAddress ? truncateAddress(userAddress) : "Connect Wallet"}
+            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -141,7 +152,15 @@ export default function Navbar() {
             
             <div className="flex items-center justify-between px-3">
               <span className="text-sm font-medium text-foreground/70">Wallet:</span>
-              <span className="font-mono text-xs text-foreground/80">{truncateAddress(userAddress)}</span>
+              <button
+                onClick={() => {
+                  connectWallet();
+                  setMobileMenuOpen(false);
+                }}
+                className="font-mono text-xs text-foreground/80 hover:text-gold"
+              >
+                {userAddress ? truncateAddress(userAddress) : "Connect Wallet"}
+              </button>
             </div>
 
             {!claimedStarter && (
@@ -150,9 +169,10 @@ export default function Navbar() {
                   handleClaim();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full py-2 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-background font-semibold rounded-md text-sm uppercase tracking-wider text-center"
+                disabled={claiming}
+                className="w-full py-2 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-background font-semibold rounded-md text-sm uppercase tracking-wider text-center disabled:opacity-50"
               >
-                Claim 100 $AUTH
+                {claiming ? "Claiming..." : "Claim 100 $AUTH"}
               </button>
             )}
           </div>

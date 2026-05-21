@@ -5,6 +5,7 @@ import { Item } from "@/lib/mockItems";
 import { formatUSD, truncateAddress } from "@/lib/utils";
 import { ShieldCheck, Calendar, QrCode, Sparkles } from "lucide-react";
 import ProvenanceTrail from "./ProvenanceTrail";
+import { useAuthentixStore } from "@/lib/store";
 
 interface CertificateNFTProps {
   certificate: {
@@ -27,6 +28,12 @@ interface CertificateNFTProps {
 }
 
 export default function CertificateNFT({ certificate, itemProvenance }: CertificateNFTProps) {
+  const { userAddress, transferCertificate, refreshState } = useAuthentixStore();
+  const [recipient, setRecipient] = useState("");
+  const [transferring, setTransferring] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const [rotateStyle, setRotateStyle] = useState({
     transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
     transition: "transform 0.5s ease",
@@ -52,6 +59,34 @@ export default function CertificateNFT({ certificate, itemProvenance }: Certific
       transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
       transition: "transform 0.5s ease-out",
     });
+  };
+
+  const owner = certificate.current_owner || certificate.minted_to;
+  const isOwner = userAddress && userAddress.toLowerCase() === owner.toLowerCase();
+
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (!recipient.startsWith("0x") || recipient.length !== 42) {
+      setError("Please enter a valid address (0x...)");
+      return;
+    }
+    setTransferring(true);
+    try {
+      const res = await transferCertificate(certificate.cert_id, recipient);
+      if (res.success) {
+        setSuccess(`Successfully transferred certificate to ${recipient}`);
+        setRecipient("");
+        await refreshState();
+      } else {
+        setError(res.error || "Transfer failed");
+      }
+    } catch (err: any) {
+      setError(err.message || "Transfer failed");
+    } finally {
+      setTransferring(false);
+    }
   };
 
   return (
@@ -181,6 +216,47 @@ export default function CertificateNFT({ certificate, itemProvenance }: Certific
 
         </div>
       </div>
+
+      {/* Transfer Form (Only visible to current owner) */}
+      {isOwner ? (
+        <div className="glass p-6 rounded-xl bg-[#121110]/40 border border-gold/15 max-w-2xl mx-auto">
+          <h4 className="font-serif text-lg text-gold-light mb-2">Transfer Certificate Ownership</h4>
+          <p className="text-xs text-foreground/60 mb-4 font-light">
+            You are the owner of this AuthentiX Certificate NFT. You can transfer ownership of this certificate to another address on-chain. This updates the provenance trail permanently.
+          </p>
+          {error && (
+            <div className="p-3 bg-red-950/20 border border-red-500/30 text-red-400 rounded text-xs mb-4">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 rounded text-xs mb-4">
+              {success}
+            </div>
+          )}
+          <form onSubmit={handleTransfer} className="flex gap-3">
+            <input
+              type="text"
+              placeholder="Recipient Address (0x...)"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              disabled={transferring}
+              className="flex-1 bg-[#0A0908]/80 border border-gold/15 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold font-mono text-foreground"
+            />
+            <button
+              type="submit"
+              disabled={transferring}
+              className="px-6 py-2 bg-gradient-to-r from-gold-dark to-gold text-background rounded-lg font-bold text-xs uppercase tracking-widest hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer whitespace-nowrap"
+            >
+              {transferring ? "Transferring..." : "Transfer NFT"}
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="text-center text-xs text-foreground/40 max-w-2xl mx-auto">
+          Connect owner wallet ({truncateAddress(owner)}) to transfer this certificate on-chain.
+        </div>
+      )}
 
       {/* Provenance Trail Timeline section below */}
       <div className="border-t border-gold/10 pt-10">
