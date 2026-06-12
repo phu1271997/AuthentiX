@@ -1,0 +1,10 @@
+{
+  "studionet": {
+    "contract_address": "0x52f3f4FbA76BF059968450b95af77731349EDA32",
+    "class_name": "AuthentiX",
+    "deployer_address": "0xdc18aa3db8bc91a6e390a35e7d0811246of3ab01",
+    "network": "studionet",
+    "rpc_url": "https://studio.genlayer.com/api",
+    "deployed_at": "2026-06-18T09:26:00Z"
+  }
+}
