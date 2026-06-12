@@ -3,7 +3,9 @@
 
 from genlayer import *
 
-class Contract(gl.Contract):
+
+class StorageTest(gl.Contract):
+    """Simple storage contract for testing GenLayer deployment."""
     storage: str
 
     def __init__(self, initial_storage: str):
