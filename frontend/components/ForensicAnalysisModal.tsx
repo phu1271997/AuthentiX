@@ -19,6 +19,99 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+// Web Audio API Synthesizer for futuristic sounds
+function playSound(type: "success" | "warning" | "error" | "scan") {
+  if (typeof window === "undefined") return;
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    if (type === "success") {
+      // Harmonic gold success chime
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+      osc1.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.3); // C6
+      
+      osc2.type = "triangle";
+      osc2.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+      osc2.frequency.exponentialRampToValueAtTime(1318.51, ctx.currentTime + 0.3); // E6
+      
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc1.start();
+      osc2.start();
+      osc1.stop(ctx.currentTime + 0.35);
+      osc2.stop(ctx.currentTime + 0.35);
+    } else if (type === "warning") {
+      // Tech-y warning / counterfeit sound
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc1.type = "sawtooth";
+      osc1.frequency.setValueAtTime(220, ctx.currentTime); // A3
+      osc1.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.4);
+      
+      osc2.type = "triangle";
+      osc2.frequency.setValueAtTime(225, ctx.currentTime);
+      osc2.frequency.linearRampToValueAtTime(115, ctx.currentTime + 0.4);
+      
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc1.start();
+      osc2.start();
+      osc1.stop(ctx.currentTime + 0.4);
+      osc2.stop(ctx.currentTime + 0.4);
+    } else if (type === "error") {
+      // Stolen alarm sound
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = "square";
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.setValueAtTime(330, ctx.currentTime + 0.12);
+      osc.frequency.setValueAtTime(440, ctx.currentTime + 0.24);
+      osc.frequency.setValueAtTime(330, ctx.currentTime + 0.36);
+      
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.45);
+    } else if (type === "scan") {
+      // Subtle synthetic click for progress scanning
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      gain.gain.setValueAtTime(0.01, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    }
+  } catch (e) {
+    console.error("Failed to play synthesis sound:", e);
+  }
+}
+
 interface ForensicAnalysisModalProps {
   itemId: string;
   isOpen: boolean;
@@ -72,6 +165,10 @@ export default function ForensicAnalysisModal({ itemId, isOpen, onClose }: Foren
           clearInterval(interval);
           return 100;
         }
+        // Play scan tick sound every 10% progress
+        if (prev % 10 === 0) {
+          playSound("scan");
+        }
         return prev + 1;
       });
     }, 55); // Reach ~100 in 5.5s
@@ -119,6 +216,47 @@ export default function ForensicAnalysisModal({ itemId, isOpen, onClose }: Foren
     };
   }, [isOpen, itemId, authenticateItem, items]);
 
+  // Audio trigger on Verdict status
+  useEffect(() => {
+    if (stage === "VERDICT" && auditItem) {
+      if (auditItem.status === "AUTHENTIC") {
+        playSound("success");
+      } else if (auditItem.status === "COUNTERFEIT") {
+        playSound("warning");
+      } else if (auditItem.status === "STOLEN_FLAGGED") {
+        playSound("error");
+      }
+    }
+  }, [stage, auditItem?.status]);
+
+  const getVerdictBorderClass = () => {
+    if (stage !== "VERDICT" || !auditItem) return "border-gold/25 shadow-[0_20px_60px_rgba(212,175,55,0.1)]";
+    switch (auditItem.status) {
+      case "AUTHENTIC":
+        return "border-emerald-500/40 shadow-[0_20px_60px_rgba(16,185,129,0.15)]";
+      case "COUNTERFEIT":
+        return "border-red-500/40 shadow-[0_20px_60px_rgba(239,68,68,0.15)] animate-pulse";
+      case "STOLEN_FLAGGED":
+        return "border-yellow-500/40 shadow-[0_20px_60px_rgba(245,158,11,0.15)] animate-pulse";
+      default:
+        return "border-zinc-500/40 shadow-[0_20px_60px_rgba(113,113,122,0.15)]";
+    }
+  };
+
+  const getVerdictTopBarClass = () => {
+    if (stage !== "VERDICT" || !auditItem) return "bg-gradient-to-r from-gold-dark via-gold to-gold-light";
+    switch (auditItem.status) {
+      case "AUTHENTIC":
+        return "bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-500";
+      case "COUNTERFEIT":
+        return "bg-gradient-to-r from-red-600 via-red-400 to-red-500";
+      case "STOLEN_FLAGGED":
+        return "bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-500";
+      default:
+        return "bg-gradient-to-r from-zinc-600 via-zinc-400 to-zinc-500";
+    }
+  };
+
   if (!isOpen || !auditItem) return null;
 
   const handleShare = () => {
@@ -146,10 +284,10 @@ export default function ForensicAnalysisModal({ itemId, isOpen, onClose }: Foren
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-4xl glass rounded-2xl bg-[#0F0E0D] border border-gold/25 shadow-[0_20px_60px_rgba(212,175,55,0.1)] overflow-hidden my-8">
+      <div className={`relative w-full max-w-4xl glass rounded-2xl bg-[#0F0E0D] border overflow-hidden my-8 transition-all duration-500 ${getVerdictBorderClass()}`}>
         
-        {/* Top Gold Border */}
-        <div className="h-1 w-full bg-gradient-to-r from-gold-dark via-gold to-gold-light" />
+        {/* Top Border */}
+        <div className={`h-1 w-full transition-all duration-500 ${getVerdictTopBarClass()}`} />
 
         {/* Close Button - Only show after verdict is declared */}
         {stage === "VERDICT" && (

@@ -12,7 +12,7 @@ graph TD
     FE -->|2. Invoke transaction| GL[GenLayer Network]
     
     subgraph GenLayer Validator Consensus
-        Contract[AuthentiX Contract] -->|3. run_nondet_unsafe| Leader[Leader Node]
+        Contract[AuthentiX Contract] -->|3. eq_principle.prompt_non_comparative| Leader[Leader Node]
         Leader -->|4. web.render| Web[Web Sources: Chrono24, Sotheby's, Art Loss Register]
         Leader -->|5. exec_prompt| AI[Visual LLM Inspection]
         AI -->|6. Generate Verdict JSON| Leader

@@ -8,6 +8,7 @@ import AuthenticityBadge from "@/components/AuthenticityBadge";
 import ProvenanceTrail from "@/components/ProvenanceTrail";
 import { useAuthentixStore } from "@/lib/store";
 import { formatUSD, truncateAddress } from "@/lib/utils";
+import { addressEquals } from "@/lib/address";
 import { 
   Award, 
   ChevronRight, 
@@ -67,7 +68,7 @@ export default function ItemDetail() {
     );
   }
 
-  const isOwner = item.submitter.toLowerCase() === userAddress.toLowerCase();
+  const isOwner = addressEquals(item.submitter, userAddress);
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();

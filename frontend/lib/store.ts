@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { mockItems, Item } from "./mockItems";
 import { createClient, createAccount, generatePrivateKey } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
+import { normalizeAddress, addressEquals } from "./address";
 
 interface AuthentixState {
   items: Item[];
@@ -68,12 +69,21 @@ const readItem = async (itemId: string) => {
   }
 };
 
+/**
+ * Get a write-capable client.
+ * Tries MetaMask first, falls back to a local ephemeral account.
+ * 
+ * wallet_getSnaps bypass: MetaMask Flask/Snaps can throw
+ * 'wallet_getSnaps is not supported' on certain chains.
+ * We catch that silently and fall back.
+ */
 const getWriteClient = async (userAddress?: string) => {
   if (typeof window === "undefined") return null;
 
   const ethereum = (window as any).ethereum;
   if (ethereum) {
     try {
+      // Only use MetaMask if it supports basic account requests
       const accounts = await ethereum.request({ method: "eth_requestAccounts" });
       if (accounts && accounts.length > 0) {
         const address = accounts[0];
@@ -84,14 +94,26 @@ const getWriteClient = async (userAddress?: string) => {
         
         try {
           await client.connect("studionet");
-        } catch (switchErr) {
-          console.warn("Failed to switch chain in wallet:", switchErr);
+        } catch (switchErr: any) {
+          // wallet_getSnaps or chain switch errors are not fatal — we continue
+          const errMsg = switchErr?.message || "";
+          if (errMsg.includes("wallet_getSnaps") || errMsg.includes("not supported")) {
+            console.warn("MetaMask Snaps not supported on this chain, continuing without switch.");
+          } else {
+            console.warn("Failed to switch chain in wallet:", switchErr);
+          }
         }
         
         return { client, address };
       }
-    } catch (err) {
-      console.warn("MetaMask connection failed, falling back to local account:", err);
+    } catch (err: any) {
+      const errMsg = err?.message || "";
+      // wallet_getSnaps is a known non-fatal issue with MetaMask Flask
+      if (errMsg.includes("wallet_getSnaps") || errMsg.includes("not supported")) {
+        console.warn("MetaMask Snaps not available, using local account fallback.");
+      } else {
+        console.warn("MetaMask connection failed, falling back to local account:", err);
+      }
     }
   }
 
@@ -128,7 +150,7 @@ export const useAuthentixStore = create<AuthentixState>()(
           const writeInfo = await getWriteClient();
           if (writeInfo) {
             const { address } = writeInfo;
-            set({ userAddress: address });
+            set({ userAddress: normalizeAddress(address) });
             await get().refreshState();
           }
         } catch (err) {
@@ -208,27 +230,62 @@ export const useAuthentixStore = create<AuthentixState>()(
           if (!writeClientInfo) throw new Error("Could not initialize write client.");
           const { client, address } = writeClientInfo;
 
-          const activeAddress = userAddress || address;
-          const newItemId = `item-auth-${Date.now()}`;
+          const activeAddress = normalizeAddress(userAddress || address);
 
+          // Convert comma-separated image URLs to JSON array format
+          let imageUrlsJson: string;
+          try {
+            // If already valid JSON array, use as-is
+            const parsed = JSON.parse(itemData.image_urls);
+            if (Array.isArray(parsed)) {
+              imageUrlsJson = itemData.image_urls;
+            } else {
+              imageUrlsJson = JSON.stringify([itemData.image_urls]);
+            }
+          } catch {
+            // Convert comma-separated to JSON array
+            const urls = itemData.image_urls
+              .split(",")
+              .map((u: string) => u.trim())
+              .filter((u: string) => u.length > 0);
+            imageUrlsJson = JSON.stringify(urls);
+          }
+
+          // Contract now auto-generates item_id
           const txHash = await client.writeContract({
             address: contractAddress,
             functionName: "submit_item",
             args: [
-              newItemId,
               itemData.category,
               itemData.brand,
               itemData.model,
               itemData.serial_number || "N/A",
               itemData.year_claimed,
-              itemData.image_urls,
+              imageUrlsJson,
               itemData.provenance || "",
               itemData.cert_doc_url || "",
             ],
             value: BigInt(0),
           });
 
-          await client.waitForTransactionReceipt({ hash: txHash });
+          const receipt = await client.waitForTransactionReceipt({ hash: txHash });
+
+          // Parse the return value to get auto-generated item_id
+          let newItemId = `item-auth-${Date.now()}`; // fallback
+          try {
+            // Try to read the result from the transaction
+            if (receipt && typeof receipt === "object") {
+              const resultStr = (receipt as any).result || (receipt as any).data;
+              if (typeof resultStr === "string") {
+                const result = JSON.parse(resultStr);
+                if (result.item_id) {
+                  newItemId = result.item_id;
+                }
+              }
+            }
+          } catch {
+            // Keep fallback ID
+          }
 
           const pendingItem: Item = {
             id: newItemId,
@@ -313,8 +370,10 @@ export const useAuthentixStore = create<AuthentixState>()(
 
             if (item.category === "watch") {
               references.push(`https://www.chrono24.com/search/index.htm?query=${encodeURIComponent(item.brand)}+${encodeURIComponent(item.model)}`);
+              references.push(`https://stolenwatchregister.com/search?serial=${encodeURIComponent(item.serial_number)}`);
             } else if (item.category === "painting" || item.category === "sculpture") {
               references.push(`https://www.sothebys.com/en/search?keyword=${encodeURIComponent(item.brand)}`);
+              references.push(`https://www.artloss.com/search?q=${encodeURIComponent(item.brand)}`);
             }
           } else if (rand < 0.70) {
             verdict = "COUNTERFEIT";
@@ -427,7 +486,7 @@ export const useAuthentixStore = create<AuthentixState>()(
           const newProvenance = `${it.provenance} | Transferred to ${toAddress} on ${new Date().toLocaleDateString()}`;
           updatedItems[itemIndex] = {
             ...it,
-            submitter: toAddress,
+            submitter: normalizeAddress(toAddress),
             provenance: newProvenance,
           };
           set({ items: updatedItems });
@@ -479,7 +538,7 @@ export const useAuthentixStore = create<AuthentixState>()(
       },
     }),
     {
-      name: "authentix-storage-v2",
+      name: "authentix-storage-v3",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         realItemIds: state.realItemIds,
@@ -488,4 +547,3 @@ export const useAuthentixStore = create<AuthentixState>()(
     }
   )
 );
-

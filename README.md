@@ -11,7 +11,20 @@
 
 > *Every authentic. Every traceable. Forever on-chain.*
 
-AuthentiX is a decentralized authentication protocol built from scratch for the GenLayer hackathon. It provides visual and textual provenance validation for luxury items (Rolex, Hermès, Patek Philippe) and fine art (paintings, sculpture, limited prints) by leveraging GenLayer Intelligent Contracts.
+---
+
+### 🔗 Deployed Contract Metadata (studionet)
+
+| Attribute | Value |
+| :--- | :--- |
+| **Contract Address** | `0x52f3f4FbA76BF059968450b95af77731349EDA32` |
+| **Contract Class Name** | `AuthentiX` *(Renamed from `Contract` for compiler compliance)* |
+| **Network** | `studionet` |
+| **GenLayer Studio Tool** | [GenLayer Run & Debug Studio](https://studio.genlayer.com/run-debug) |
+
+---
+
+AuthentiX is a decentralized authentication protocol built from scratch for the GenLayer Builder Program. It provides visual and textual provenance validation for luxury items (Rolex, Hermès, Patek Philippe) and fine art (paintings, sculpture, limited prints) by leveraging GenLayer Intelligent Contracts.
 
 ---
 
@@ -88,52 +101,64 @@ raw_verdict = gl.nondet.exec_prompt(prompt, response_format="json")
 
 ---
 
-## 🚀 Local Setup
+## 🚀 Local Setup & Execution
 
-To run the Next.js demo application locally:
-
-1.  **Clone and navigate to the frontend directory**:
-    ```bash
-    cd "frontend"
-    ```
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-3.  **Launch the development server**:
-    ```bash
-    npm run dev
-    ```
-4.  Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Running the Frontend Locally:
+1. **Navigate to the frontend directory**:
+   ```bash
+   cd frontend
+   ```
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+3. **Launch the development server**:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🛡️ GenLayer Contract Deployment Guide
+## 🎮 Evaluator Demo Sandbox (No MetaMask Required)
 
-Follow these steps to run the contract suite in the GenLayer Studio:
+To make evaluation seamless for the GenLayer Builder review team, we built an **Interactive Test Sandbox** directly into the frontend. 
 
-### Step 1: Open and Reset Studio
-1. Navigate to the [GenLayer Run & Debug Studio](https://studio.genlayer.com/run-debug).
-2. Go to **Settings** -> Click **Reset Storage** -> Confirm.
-3. Perform a hard refresh (`Cmd+Shift+R` or `Ctrl+Shift+F5`) to clear cache.
+1. Navigate to the **Demo Scenarios** tab in the top navigation bar.
+2. Select any of the 3 pre-seeded scenarios:
+   * **Rolex Cosmograph Daytona (Authentic)**: Verifies visual matches of a genuine 1968 timepiece and updates ownership.
+   * **Hermès Birkin 30 (Counterfeit)**: Detects design hallmarks mismatching reference specs.
+   * **Picasso — Le Rêve (Stolen/Flagged)**: Queries stolen art databases and flags the asset.
+3. Click **Run Simulation**. The application automatically generates an ephemeral sandbox wallet, requests starter gas and stake tokens from the faucet, submits the item, and opens the **Forensic Jury Console** so you can watch validator votes process in real-time.
 
-### Step 2: Deploy Sanity Contract First
-1. Create a new contract file named `storage_test.py` and paste the contents of `contracts/storage_test.py`.
-2. Click **Deploy** -> Verify successful deployment.
+---
 
-### Step 3: Deploy AuthentiX Contract
-1. Create a new contract file named `authentix.py` and paste the contents of `contracts/authentix.py`.
-2. Click **Deploy** -> Verify successful compilation.
+## 🧪 Unit Testing Suite (Direct Mode)
 
-### Step 4: Interact with the Contract
-1. **Claim Tokens**: Click on the `claim_starter_tokens` function and run it. Your address is granted 100 $AUTH tokens.
-2. **Register Asset**: Call `submit_item` with test parameters (e.g. `category="watch"`, `brand="Rolex"`, `model="Submariner 116610LN"`, `image_urls="..."`).
-3. **Execute AI Jury**: Call `authenticate_item` using the `item_id` you registered. Wait for the validators to process.
-4. **View Certification**: Call `get_certificate` with the returned `certificate_id` to inspect NFT metadata on-chain.
+We have implemented a comprehensive test suite with **19 test cases** covering storage, tokenomics, NFT transfers, case-insensitive address normalization, and consensus edge cases. Tests run in **GenLayer Direct Mode** (in-memory simulation) for maximum speed.
+
+### Running tests locally:
+1. Ensure `genlayer-test` is installed:
+   ```bash
+   pip install genlayer-test pytest
+   ```
+2. Execute the test suite from the project root:
+   ```bash
+   pytest tests/ -v
+   ```
+
+---
+
+## 📖 Technical & Protocol Documentation
+
+*   [🎨 System Architecture & Sequence Flows](docs/ARCHITECTURE.md)
+*   [🪙 Tokenomics, Burn & Incentive Models](docs/ECONOMICS.md)
+*   [🛡️ Security Specifications & Prompt Canary Defenses](docs/SECURITY.md)
+*   [🚀 Reproducible GenLayer Studio Steps](deployment/REPRODUCIBLE_STEPS.md)
 
 ---
 
 ## 🏆 Hackathon Submission Info
 *   **Project Name**: AuthentiX
-*   **Track**: AI-Native dApps
+*   **Track**: Builder Program Submission / AI-Native Protocol
 *   **License**: MIT

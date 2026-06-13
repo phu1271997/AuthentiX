@@ -33,6 +33,6 @@ Use this guide to record your presentation video or run a live screen-share.
 ---
 
 ## 🎬 Act 5: GenLayer Studio & Close (1:30 - 1:45)
-*   **Visual**: Briefly switch tabs to GenLayer Studio showing `authentix.py`. Highlight the `leader_fn` and the `run_nondet_unsafe` call.
+*   **Visual**: Briefly switch tabs to GenLayer Studio showing `authentix.py`. Highlight the `leader_fn` and the `eq_principle.prompt_non_comparative` call.
 *   **Narration**: 
     > *"This is all done with a single Python Intelligent Contract on GenLayer, calling active web rendering and visual AI models natively without brittle oracles. AuthentiX makes luxury verifiable, auditable, and forever traceable. Thank you."*

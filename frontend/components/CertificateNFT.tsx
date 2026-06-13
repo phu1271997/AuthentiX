@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Item } from "@/lib/mockItems";
 import { formatUSD, truncateAddress } from "@/lib/utils";
+import { addressEquals } from "@/lib/address";
 import { ShieldCheck, Calendar, QrCode, Sparkles } from "lucide-react";
 import ProvenanceTrail from "./ProvenanceTrail";
 import { useAuthentixStore } from "@/lib/store";
@@ -62,7 +63,7 @@ export default function CertificateNFT({ certificate, itemProvenance }: Certific
   };
 
   const owner = certificate.current_owner || certificate.minted_to;
-  const isOwner = userAddress && userAddress.toLowerCase() === owner.toLowerCase();
+  const isOwner = addressEquals(userAddress, owner);
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();

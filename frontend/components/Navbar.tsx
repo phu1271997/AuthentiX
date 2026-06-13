@@ -34,6 +34,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Marketplace", href: "/marketplace" },
     { name: "Authenticate", href: "/submit" },
+    { name: "Demo Scenarios", href: "/demo" },
   ];
 
   if (!mounted) {
@@ -55,13 +56,16 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-2 group">
               <ShieldCheck className="h-8 w-8 text-gold transition-transform group-hover:scale-110" />
               <span className="font-serif text-2xl font-bold tracking-wider text-gold group-hover:text-gold-light transition-colors">
                 AuthentiX
               </span>
             </Link>
+            <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded font-mono">
+              Demo Sandbox
+            </span>
           </div>
 
           {/* Desktop Nav Links */}

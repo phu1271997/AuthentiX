@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import ContractInfoFooter from "@/components/ContractInfoFooter";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-serif",
@@ -20,7 +21,8 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "AuthentiX | AI-Powered Authentication for Luxury Goods & Fine Art",
-  description: "The world's first decentralized authentication protocol for luxury items and fine art using GenLayer's multi-validator AI consensus and active web rendering.",
+  description:
+    "The world's first decentralized authentication protocol for luxury items and fine art using GenLayer's multi-validator AI consensus and active web rendering.",
 };
 
 export default function RootLayout({
@@ -35,6 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
         {children}
+        <ContractInfoFooter />
       </body>
     </html>
   );
