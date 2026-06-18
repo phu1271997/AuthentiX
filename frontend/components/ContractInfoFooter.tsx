@@ -4,7 +4,7 @@ import { ExternalLink, Shield, Cpu } from "lucide-react";
 
 const CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
-  "0x52f3f4FbA76BF059968450b95af77731349EDA32";
+  "0xf443E354c34eD835C6Bc0782Eae99B8b1fDD3C92";
 
 const STUDIO_URL = `https://studio.genlayer.com/run-debug`;
 

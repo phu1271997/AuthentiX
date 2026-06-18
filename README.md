@@ -17,7 +17,7 @@
 
 | Attribute | Value |
 | :--- | :--- |
-| **Contract Address** | `0x52f3f4FbA76BF059968450b95af77731349EDA32` |
+| **Contract Address** | `0xf443E354c34eD835C6Bc0782Eae99B8b1fDD3C92` |
 | **Contract Class Name** | `AuthentiX` *(Renamed from `Contract` for compiler compliance)* |
 | **Network** | `studionet` |
 | **GenLayer Studio Tool** | [GenLayer Run & Debug Studio](https://studio.genlayer.com/run-debug) |

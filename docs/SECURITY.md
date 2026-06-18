@@ -29,9 +29,9 @@ To defend against injection attacks, AuthentiX implements a dynamic **Canary Tok
 ## 🔠 Case-Insensitive Address Normalization
 
 Ethereum and GenLayer addresses can be represented in multiple formats:
-* Checksummed mixed-case hex: `0x52f3f4FbA76BF059968450b95af77731349EDA32`
-* Lowercase hex: `0x52f3f4fba76bf059968450b95af77731349eda32`
-* Uppercase hex: `0x52F3F4FBA76BF059968450B95AF77731349EDA32`
+* Checksummed mixed-case hex: `0xf443E354c34eD835C6Bc0782Eae99B8b1fDD3C92`
+* Lowercase hex: `0xf443e354c34ed835c6bc0782eae99b8b1fdd3c92`
+* Uppercase hex: `0xF443E354C34ED835C6BC0782EAE99B8b1fDD3C92`
 * Raw bytes: `b'\x52\xf3\xf4...'`
 
 ### Vulnerability Vector

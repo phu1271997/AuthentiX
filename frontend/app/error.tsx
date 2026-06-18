@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x52f3f4FbA76BF059968450b95af77731349EDA32";
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0xf443E354c34eD835C6Bc0782Eae99B8b1fDD3C92";
 
 export default function ErrorBoundary({
   error,

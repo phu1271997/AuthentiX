@@ -52,5 +52,5 @@ jobs:
           cd frontend
           npm run build
         env:
-          NEXT_PUBLIC_CONTRACT_ADDRESS: "0x52f3f4FbA76BF059968450b95af77731349EDA32"
+          NEXT_PUBLIC_CONTRACT_ADDRESS: "0xf443E354c34eD835C6Bc0782Eae99B8b1fDD3C92"
           NEXT_PUBLIC_RPC_URL: "https://studio.genlayer.com/api"
